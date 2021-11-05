@@ -35,7 +35,7 @@ void customer( void )
     sem_wait(&mutex) ;
     if ( waiting < CHAIRS ) {
       waiting++;
-      printf("Customer %i is now waiting.");
+      printf("%i customers waiting.\n", waiting);
       sem_post(&customers);
       sem_post(&mutex);
       sem_wait(&stylist);
@@ -46,7 +46,7 @@ void customer( void )
       for ( j = 0 ; j < DELAY; j++ ); //go shopping
     }	
   }
-  printf("Thread %i got a haircut.\n",);
+  printf("Thread %i got a haircut.\n", pthread_self());
 }
 
 void main( void )
