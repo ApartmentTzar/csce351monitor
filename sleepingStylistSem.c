@@ -20,10 +20,11 @@ void style ( void )
   int j ;
   while ( 1 ) {
     sem_wait(&customers);
-    sem_post(&mutex);
+    sem_wait(&mutex);
     waiting--;
+    printf("A new customer is being seen.")
     sem_post(&stylist);
-    sem_post(&mutex ) ;
+    sem_post(&mutex) ;
     for ( j = 0 ; j < DELAY; j++ ); //cut hair
   }
 }
@@ -31,19 +32,21 @@ void customer( void )
 {
   int j ;
   while ( 1 ) {
-    sem_wait(&mutex ) ;
+    sem_wait(&mutex) ;
     if ( waiting < CHAIRS ) {
       waiting++;
+      printf("Customer %i is now waiting.");
       sem_post(&customers);
       sem_post(&mutex);
       sem_wait(&stylist);
       break ;
     }
     else {
-      sem_post(&mutex );
+      sem_post(&mutex);
       for ( j = 0 ; j < DELAY; j++ ); //go shopping
     }	
   }
+  printf("Thread %i got a haircut.\n",);
 }
 
 void main( void )
