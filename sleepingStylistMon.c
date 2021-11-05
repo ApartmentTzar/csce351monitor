@@ -1,32 +1,144 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
+#include <stdbool.h>
+#include <semaphore.h>
+
+#define CHAIRS 6 
+#define DELAY 100000000 // adjust this value
+#define NUM 20
 
 
- //==== s l e e p i n g S t y l i s t M o n . c ====//
-# define DELAY 1000000
-void main (void)
+pthread_cond_t barber;
+pthread_cond_t customers;
+pthread_mutex_t lock;
+int waiting = 0;
+bool sleeping = false;
+typedef struct cv 
 {
-// c r e a t e a s p e c i f i e d number o f c u st o m e r t h r e a d s
-// and a s t y l i s t t h r e a d . Don ’ t f o r g e t t o j o i n t h r e a d s
+	int threadsBlocked;
+	sem_t semaphore;
+	pthread_mutex_t lock;
+}cv;
+
+cv cond;
+
+struct cv initCond()
+{
+	cv newCond;
+	sem_init(&newCond.semaphore,0,CHAIRS);
+	pthread_mutex_init(&newCond.lock,NULL);
+	return newCond;
 }
 
-void stylist (void)
+int count(cv c)
 {
-    int j ;
+	return c.threadsBlocked;
+}
+
+void wait(cv c)
+{
+	pthread_mutex_lock(&c.lock);
+	c.threadsBlocked++;
+	pthread_mutex_unlock(&c.lock);
+	sem_wait(&c.semaphore);
+	return;
+}
+
+void signal(cv c)
+{
+	if(c.threadsBlocked>0)
+	{
+		c.threadsBlocked--;
+	}
+	sem_post(&c.semaphore);
+	return;
+}
+
+void mon_debugPrint(bool isStylist)
+{
+	if(isStylist)
+	{
+		printf("Stylist Debug: %d customers in chair\n",waiting);
+	}
+	else
+	{
+		printf("Customer Debug: %d customers in chair\n",waiting);
+	}
+}
+
+void mon_checkCustomer()
+{
+	if(waiting==0)
+	{
+		pthread_cond_wait(&barber,&lock);
+	}
+	--waiting;
+	pthread_cond_signal(&customers);
+}
+
+bool mon_checkStylist()
+{
+	if(waiting<CHAIRS)
+	{
+		waiting++;
+		pthread_cond_signal(&barber);
+		pthread_cond_wait(&customers,&lock);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void stylist(void)
+{
     while (1) 
     {
-		mondebugPrint ( ) ;
-		moncheckCustomer ( ) ;
-		for(j = 0; j < DELAY; j++); // c u t h a i r
+		mon_debugPrint(true);
+		mon_checkCustomer() ;
+		printf("Cutting hair\n");
+		for(int k = 0; k < DELAY; k++); // cut hair
     }
 }
 
 void customer(void)
 {
-	int j ;
-	while ( 1 )
+	while (1)
 	{
-		mondebugPrint ( ) ;
-		if ( moncheckStylist ( ) )
-			break ;
-		for (j = 0;j < DELAY; j++); // go s h o p pi n g
+		mon_debugPrint(false);
+		if (mon_checkStylist())
+			break;
+		printf("Shopping time\n");
+		for (int j = 0;j < DELAY; j++); // go shopping
 	}
 }
+
+void main (void)
+{
+	pthread_cond_init(&barber,NULL);
+	pthread_cond_init(&customers,NULL);
+	pthread_mutex_init(&lock,NULL);
+	//cond = initCond();
+	pthread_t thread[NUM];
+	for (int i = 0; i < NUM; i++) 
+	{
+		if (i == 0) 
+		{
+			pthread_create(&thread[i], NULL, (void *) stylist, NULL);
+		}
+		else 
+		{
+			pthread_create(&thread[i], NULL, (void *) customer, NULL);
+		}
+	}
+	
+	for (int i = 0; i < NUM; i++) 
+	{
+		pthread_join(thread[i], NULL);
+	}
+}
+
+
