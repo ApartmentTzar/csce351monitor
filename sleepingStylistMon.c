@@ -104,14 +104,15 @@ void stylist(void)
     }
 }
 
-void customer(void)
+void customer(void *id)
 {
+	int *i = (int *)id;
 	while (1)
 	{
 		mon_debugPrint(false);
 		if (mon_checkStylist())
 			break;
-		printf("Shopping time\n");
+		printf("Customer %d Shopping time\n",*i);
 		for (int j = 0;j < DELAY; j++); // go shopping
 	}
 }
@@ -125,13 +126,15 @@ void main (void)
 	pthread_t thread[NUM];
 	for (int i = 0; i < NUM; i++) 
 	{
-		if (i == 0) 
+		if (i == 0)
 		{
 			pthread_create(&thread[i], NULL, (void *) stylist, NULL);
 		}
 		else 
 		{
-			pthread_create(&thread[i], NULL, (void *) customer, NULL);
+			int * id = (int *)malloc(sizeof(int));
+			*id = i;
+			pthread_create(&thread[i], NULL, (void *) customer, (void *)id);
 		}
 	}
 	
