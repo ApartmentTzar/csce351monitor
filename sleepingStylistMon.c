@@ -15,9 +15,10 @@ pthread_cond_t customers;
 pthread_mutex_t lock;
 int waiting = 0;
 bool sleeping = false;
+
 typedef struct cv 
 {
-	int threadsBlocked;
+	int waiting;
 	sem_t semaphore;
 	pthread_mutex_t lock;
 }cv;
@@ -34,13 +35,13 @@ struct cv initCond()
 
 int count(cv c)
 {
-	return c.threadsBlocked;
+	return c.waiting;
 }
 
 void wait(cv c)
 {
 	pthread_mutex_lock(&c.lock);
-	c.threadsBlocked++;
+	c.waiting++;
 	pthread_mutex_unlock(&c.lock);
 	sem_wait(&c.semaphore);
 	return;
@@ -48,9 +49,9 @@ void wait(cv c)
 
 void signal(cv c)
 {
-	if(c.threadsBlocked>0)
+	if(c.waiting>0)
 	{
-		c.threadsBlocked--;
+		c.waiting--;
 	}
 	sem_post(&c.semaphore);
 	return;
@@ -72,17 +73,20 @@ void mon_checkCustomer()
 {
 	if(waiting==0)
 	{
+		printf("No customers going to sleep\n");
 		pthread_cond_wait(&barber,&lock);
+		printf("Woke up, cutting hair\n");
 	}
 	--waiting;
 	pthread_cond_signal(&customers);
 }
 
-bool mon_checkStylist()
+bool mon_checkStylist(int id)
 {
 	if(waiting<CHAIRS)
 	{
 		waiting++;
+		printf("Customer %d entering barber shop\n",id);
 		pthread_cond_signal(&barber);
 		pthread_cond_wait(&customers,&lock);
 		return true;
@@ -110,9 +114,9 @@ void customer(void *id)
 	while (1)
 	{
 		mon_debugPrint(false);
-		if (mon_checkStylist())
+		if (mon_checkStylist(*i))
 			break;
-		printf("Customer %d Shopping time\n",*i);
+		printf("Customer %d gone shopping\n",*i);
 		for (int j = 0;j < DELAY; j++); // go shopping
 	}
 }
@@ -132,7 +136,7 @@ void main (void)
 		}
 		else 
 		{
-			int * id = (int *)malloc(sizeof(int));
+			int * id = (int *)malloc(sizeof(int));			//This leaks memory but going through the effort of fixing it is not worth the effort since this program only terminates via SIGINT
 			*id = i;
 			pthread_create(&thread[i], NULL, (void *) customer, (void *)id);
 		}
@@ -142,6 +146,7 @@ void main (void)
 	{
 		pthread_join(thread[i], NULL);
 	}
+	//Free memory here 
 }
 
 
