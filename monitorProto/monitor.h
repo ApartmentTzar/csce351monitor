@@ -1,5 +1,11 @@
 #ifndef MONITOR
-#define MONITOR
+#define 
+#include <semaphore.c>
+
+struct cond{
+    int blockedThreads;
+    sem_t cvSem;
+}
 
 void mon_checkCustomer();
 

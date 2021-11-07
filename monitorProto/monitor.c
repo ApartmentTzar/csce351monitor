@@ -1,6 +1,7 @@
 //=====monitor.c=====//
 #include <pthread.h>
 #include <semaphore.h>
+#include <monitor.h>
 
 #define CHAIR 6
 cond stylistAvailable, customerAvailable;

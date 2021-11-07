@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <semaphore.h>
-#include <monitor.c>
+#include <monitor.h>
 
 #define DELAY 1000000//adjust this value
 
@@ -15,7 +15,7 @@ void stylist(void)
     while(1){
     mondebugPrint();
     moncheckCustomer();
-    for(int j =0; j < DELAY; j++);//cut hair
+    for(j =0; j < DELAY; j++);//cut hair
     }
 }
 
@@ -26,7 +26,7 @@ void customer(void)
     mondebugPrint();
     if(moncheckStylist())
         break;
-    for(int j = 0; j < DELAY; j++);//go shopping
+    for(j = 0; j < DELAY; j++);//go shopping
     }
 }
 
@@ -46,7 +46,6 @@ void main(void)
 			pthread_create(&thread[i], NULL, (void *) customer, (void *)id);
 		}
 	}
-	
 	for (int i = 0; i < NUM; i++) 
 	{
 		pthread_join(thread[i], NULL);
