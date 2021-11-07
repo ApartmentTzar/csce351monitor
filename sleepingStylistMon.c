@@ -54,11 +54,17 @@ void signal(cv* c)
 void mon_debugPrint()
 {
 	sem_wait(&entryQueue);
-	printf("\n");
-    printf("Customers in Salon = %d\n",count(&stylistAvailable));
-    printf("Given haircuts     = %d\n",haircutsGiven);
-    printf("Salon full         = %d\n",timesFull);
-    printf("Salon empty        = %d\n",timesEmpty);
+	printf("\n|");
+	for(int k = 1; k <= CHAIRS; k++){
+    	if(k <= count(&stylistAvailable)){
+			printf("1|");
+		}
+		else {printf("0|");}
+	}
+	printf(" => %i\n", count(&stylistAvailable));
+	printf("Given haircuts     = %i\n",haircutsGiven);
+    printf("Salon full         = %i times\n",timesFull);
+    printf("Salon empty        = %i times\n",timesEmpty);
 	printf("\n");
 	sem_post(&entryQueue);
 }
