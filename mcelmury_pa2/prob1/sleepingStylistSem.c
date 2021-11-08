@@ -6,7 +6,7 @@
 /* // ==== s l e e p i n g S t y l i s t S e m . c ====// */
 # define CHAIRS 6 
 # define DELAY 500000 // adjust this value
-# define NUM 16
+# define NUM 76
 
 sem_t mutex;
 sem_t stylist;
