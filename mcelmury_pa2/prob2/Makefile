@@ -1,13 +1,14 @@
-CC = gcc
-CFLAGS = -lpthread -g -std=c99
-SOURCES = sleepingStylistMon.c
-OBJ = sleepingStylistMon
+CC=gcc
+CFLAGS=-I. -lpthread -g -std=c99
+DEPS = monitor.h
+OBJ = sleepingStylistMon.o monitor.o 
 
-compile:
-	$(CC) $(CFLAGS) $(SOURCES) -o $(OBJ)
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-run:
-	./$(OBJ)
+sleepingStylistMon: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-clearBin:
-	rm $(OBJ)
+clean: 
+	$(RM) *.o
+	$(RM) sleepingStylistMon

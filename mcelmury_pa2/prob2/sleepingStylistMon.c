@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
-#include <semaphore.h>
+#include "monitor.h"
 
 #define CHAIRS 6 
 #define DELAY 100000000 // adjust this value
@@ -18,38 +17,8 @@ int haircutsGiven = 0;
 int timesFull = 0;
 int timesEmpty = 0;
 
-typedef struct cv 
-{
-	int waiting;
-	sem_t semaphore;
-}cv;
-
 cv stylistAvailable;
 cv customerAvailable;
-
-void initCond(cv * cond,int count)
-{
-	sem_init(&cond->semaphore,0,count);
-}
-
-int count(cv* c)
-{
-	return c->waiting;
-}
-
-void wait(cv* c)
-{
-    sem_post(&entryQueue);
-	c->waiting++;
-	sem_wait(&c->semaphore);
-	c->waiting--;
-    sem_wait(&entryQueue);
-}
-
-void signal(cv* c)
-{
-	sem_post(&c->semaphore);
-}
 
 void mon_debugPrint()
 {
@@ -78,7 +47,7 @@ void mon_checkCustomer()
     {
         printf("No customers going to sleep\n");
         timesEmpty++;
-        wait(&customerAvailable);
+        wait(&customerAvailable,&entryQueue);
     	printf("Woke up, cutting hair\n");
 
     }
@@ -102,7 +71,7 @@ bool mon_checkStylist(int id)
 		{
 			signal(&customerAvailable);
 		}
-        wait(&stylistAvailable);
+        wait(&stylistAvailable,&entryQueue);
 		if(stylists > 0)
 		{
         	stylists = stylists - 1;
